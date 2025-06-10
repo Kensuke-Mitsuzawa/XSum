@@ -8,4 +8,9 @@ xsum-human-evaluation-data.txt
 xsum-model-predictions/
 
 XSum-Dataset/xsum-raw-downloads/
+XSum-Dataset/xsum-extracts-from-downloads
 XSum-Dataset/XSum-WebArxiveUrls.missing.txt
+XSum-Dataset/xsum-extracts-from-downloads-failedIds.txt
+
+XSum-Dataset/stanford-corenlp-full-2015-12-09.zip
+XSum-Dataset/stanford-corenlp-full-2015-12-09/

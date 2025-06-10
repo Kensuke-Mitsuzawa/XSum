@@ -13,6 +13,16 @@ Please cite this paper if you use our code or data.
 }
 ```
 
+# Setup
+
+### Pythons
+
+This repository requires two versions of Pythons: Python2.7 and Python3 (Python3.9 is recommended). The Python2.7 interpretor is necessary for data-processing, and the Python3 is for handling models.  
+
+### Java
+
+
+
 
 ## Extreme Summarization (XSum) dataset
 
@@ -70,20 +80,27 @@ python setup.py develop
 We partition the extracted datset into training, development and test sets. The input document is truncated to 400 tokens and the length of the summary is limited to 90 tokens. Both *document* and *summary* files are lowercased.
 
 ##### ConvS2S
+
+The following script is with **Python2.7**.
 ```
 python scripts/xsum-preprocessing-convs2s.py
 ```
+
 It generates the following files in the "data-convs2s" directory: 
+
 ``` 
 train.document and train.summary
 validation.document and validation.summary
 test.document and test.summary
 ```
+
 Lines in *document* and *summary* files are paired as (input document, corresponding output summary).  
+
 ```
 TEXT=./data-convs2s
 python XSum-ConvS2S/preprocess.py --source-lang document --target-lang summary --trainpref $TEXT/train --validpref $TEXT/validation --testpref $TEXT/test --destdir ./data-convs2s-bin --joined-dictionary --nwordstgt 50000 --nwordssrc 50000
 ```
+
 This will create binarized data that will be used for model training. It also generates source and target dictionary files. In this case, both files are identical (due to "--joined-dictionary") and have 50000 tokens. 
 
 ##### Topic-ConvS2S

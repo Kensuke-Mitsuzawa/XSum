@@ -2,8 +2,9 @@
 
 ## Updates: Setups
 
-This is the information at the date 2025-06-10. Python 2.7 is hard to setup. Simply, use Conda.
+### Python2.7
 
+This is the information at the date 2025-06-10. Python 2.7 is hard to setup. Simply, use Conda.
 
 ```
 conda create -n p27 python=2.7
@@ -12,6 +13,15 @@ pip install -r requirements.txt
 conda install anaconda::libxslt
 conda install anaconda::libxml2
 ```
+
+### Java 
+
+
+### Stanford NLP ToolKit
+
+The required version is `3.6.0`.
+This version is available at [Link](https://nlp.stanford.edu/software/stanford-corenlp-full-2015-12-09.zip), e.g. `wget XSum-Dataset/stanford-corenlp-full-2015-12-09.zip`.
+
 
 
 ----
