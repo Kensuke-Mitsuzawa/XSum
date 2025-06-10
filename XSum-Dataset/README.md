@@ -1,5 +1,23 @@
 # Extreme Summarization (XSum) Dataset
 
+## Updates: Setups
+
+This is the information at the date 2025-06-10. Python 2.7 is hard to setup. Simply, use Conda.
+
+
+```
+conda create -n p27 python=2.7
+conda activate p27
+pip install -r requirements.txt
+conda install anaconda::libxslt
+conda install anaconda::libxml2
+```
+
+
+----
+
+
+
 **You can always build the dataset using the instructions below. The original dataset is also available upon request.**
 
 This repository contains download and preprocessing instructions for the **XSum** dataset described in our EMNLP 2018 paper "[Don't Give Me the Details, Just the Summary! Topic-Aware Convolutional Neural Networks for Extreme Summarization](https://arxiv.org/abs/1808.08745)". Please contact me at shashi.narayan@ed.ac.uk for any question.

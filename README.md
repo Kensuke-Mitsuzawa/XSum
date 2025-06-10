@@ -13,15 +13,17 @@ Please cite this paper if you use our code or data.
 }
 ```
 
+
 ## Extreme Summarization (XSum) dataset
 
 **You can always build the dataset using the instructions below. The original dataset is also available upon request.**
 
 Instructions to download and preprocess the extreme summarization dataset are [here](./XSum-Dataset).
+The dataset creation requires Python2.7.
 
-## Looking for a Running Demo of Our System?
+~~## Looking for a Running Demo of Our System?~~
 
-A running demo of our abstractive system can be found [here](http://cohort.inf.ed.ac.uk/xsum.html).
+~~A running demo of our abstractive system can be found [here](http://cohort.inf.ed.ac.uk/xsum.html).~~
 
 ## Pretrained models and Test Predictions (Narayan et al., EMNLP 2018)
 
