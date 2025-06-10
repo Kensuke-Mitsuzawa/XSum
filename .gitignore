@@ -3,3 +3,6 @@ build/
 
 __pycache__/
 libbleu.cpython-39-x86_64-linux-gnu.so
+
+xsum-human-evaluation-data.txt
+xsum-model-predictions/
