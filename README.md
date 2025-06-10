@@ -38,19 +38,25 @@ This repository contains PyTorch code for our Topic-ConvS2S model. Our code buil
 We also release the code for the [ConvS2S model](https://arxiv.org/abs/1705.03122). It uses optimized hyperparameters for extreme summarization. Our release facilitates the replication of our experiments, such as training from scratch or predicting with released pretrained models, as reported in the paper.
 
 ### Installation
-Our code requires PyTorch version 0.4.0 or 0.4.1. Please follow the instructions here: https://github.com/pytorch/pytorch#installation.
 
-After PyTorch is installed, you can install ConvS2S and Topic-ConvS2S:
+I confirm the codebase with Python 3.9.
+
+~~Our code requires PyTorch version 0.4.0 or 0.4.1. Please follow the instructions here: https://github.com/pytorch/pytorch#installation.~~ <- I confirmed the code with ``torch==1.7.1``.
+
+Just do `pip install -r requirements.txt`
+
+
+~~After PyTorch is installed,~~ you can install ConvS2S and Topic-ConvS2S:
 ```
 # Install ConvS2S
 cd ./XSum-ConvS2S
-pip install -r requirements.txt
+# pip install -r requirements.txt  # ignore this file
 python setup.py build
 python setup.py develop
 
 # Install Topic-ConvS2S
 cd ../XSum-Topic-ConvS2S
-pip install -r requirements.txt
+# pip install -r requirements.txt  # ignore this file
 python setup.py build
 python setup.py develop
 ```
