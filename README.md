@@ -13,7 +13,7 @@ Please cite this paper if you use our code or data.
 }
 ```
 
-# Setup
+# Required Environment
 
 ### Pythons
 
@@ -21,10 +21,13 @@ This repository requires two versions of Pythons: Python2.7 and Python3 (Python3
 
 ### Java
 
+Java is necessary for constructing the dataset.
+Java 8 is supposed to be fine.
+The tested environment is `openjdk version "21.0.7" 2025-04-15`.
 
 
 
-## Extreme Summarization (XSum) dataset
+# Dataset Construction: Extreme Summarization (XSum) dataset
 
 **You can always build the dataset using the instructions below. The original dataset is also available upon request.**
 
@@ -35,7 +38,9 @@ The dataset creation requires Python2.7.
 
 ~~A running demo of our abstractive system can be found [here](http://cohort.inf.ed.ac.uk/xsum.html).~~
 
-## Pretrained models and Test Predictions (Narayan et al., EMNLP 2018)
+
+
+# Pretrained models and Test Predictions (Narayan et al., EMNLP 2018)
 
 * [Pretrained ConvS2S model and dictionary files](http://bollin.inf.ed.ac.uk/public/direct/XSUM-EMNLP18-convs2s.tar.gz) (1.1GB)
 * [Pretrained Topic-ConvS2S model and dictionary files](http://bollin.inf.ed.ac.uk/public/direct/XSUM-EMNLP18-topic-convs2s.tar.gz) (1.2GB)
@@ -43,13 +48,17 @@ The dataset creation requires Python2.7.
 * Our [model Predictions](xsum-model-predictions.tar.gz)
 * [Human Evaluation Data](xsum-human-evaluation-data.tar.gz)
 
-## Topic-Aware Convolutional Model for Extreme Summarization
+---
+
+~~## Topic-Aware Convolutional Model for Extreme Summarization~~
+
+# Setups
 
 This repository contains PyTorch code for our Topic-ConvS2S model. Our code builds on an earlier copy of [Facebook AI Research Sequence-to-Sequence Toolkit](https://github.com/pytorch/fairseq). 
 
 We also release the code for the [ConvS2S model](https://arxiv.org/abs/1705.03122). It uses optimized hyperparameters for extreme summarization. Our release facilitates the replication of our experiments, such as training from scratch or predicting with released pretrained models, as reported in the paper.
 
-### Installation
+## Installation
 
 I confirm the codebase with Python 3.9.
 
@@ -71,6 +80,50 @@ cd ../XSum-Topic-ConvS2S
 # pip install -r requirements.txt  # ignore this file
 python setup.py build
 python setup.py develop
+```
+
+
+# File Preprocessing
+
+## ConvS2S
+
+The following script is with **Python2.7**.
+```
+python scripts/xsum-preprocessing-convs2s.py
+```
+
+It generates the following files in the "data-convs2s" directory: 
+
+``` 
+train.document and train.summary
+validation.document and validation.summary
+test.document and test.summary
+```
+
+
+# Generation with Pre-trained Models
+
+#### ConvS2S
+
+```
+CUDA_VISIBLE_DEVICES=1 python XSum-ConvS2S/generate.py ./data-convs2s --path ./checkpoints-convs2s/checkpoint-best.pt --batch-size 1 --beam 10 --replace-unk --source-lang document --target-lang summary > test-output-convs2s-checkpoint-best.pt
+```
+
+Make sure that ./data-convs2s also has the source and target dictionary files.
+
+#### Topic-ConvS2S
+
+```
+CUDA_VISIBLE_DEVICES=1 python XSum-Topic-ConvS2S/generate.py ./data-topic-convs2s --path ./checkpoints-topic-convs2s/checkpoint_best.pt --batch-size 1 --beam 10 --replace-unk --source-lang document --target-lang summary --doctopics doc-topics --encoder-embed-dim 512 > test-output-topic-convs2s-checkpoint-best.pt 
+```
+
+Make sure that ./data-topic-convs2s has the test files to decode, the source and target dictionary files.
+
+### Extract final hypothesis
+
+```
+python scripts/extract-hypothesis-fairseq.py -o test-output-convs2s-checkpoint-best.pt -f final-test-output-convs2s-checkpoint-best.pt
+python scripts/extract-hypothesis-fairseq.py -o test-output-topic-convs2s-checkpoint-best.pt -f final-test-output-topic-convs2s-checkpoint-best.pt
 ```
 
 ### Training a New Model
@@ -132,26 +185,6 @@ CUDA_VISIBLE_DEVICES=1 python XSum-ConvS2S/train.py ./data-convs2s-bin --source-
 ##### Topic-ConvS2S
 ```
 CUDA_VISIBLE_DEVICES=1 python XSum-Topic-ConvS2S/train.py ./data-topic-convs2s --source-lang document --target-lang summary --doctopics doc-topics --max-sentences 32 --arch fconv --criterion label_smoothed_cross_entropy --max-epoch 200 --clip-norm 0.1 --lr 0.10 --dropout 0.2 --save-dir ./checkpoints-topic-convs2s --no-progress-bar --log-interval 10
-```
-
-### Generation with Pre-trained Models
-
-#### ConvS2S
-```
-CUDA_VISIBLE_DEVICES=1 python XSum-ConvS2S/generate.py ./data-convs2s --path ./checkpoints-convs2s/checkpoint-best.pt --batch-size 1 --beam 10 --replace-unk --source-lang document --target-lang summary > test-output-convs2s-checkpoint-best.pt
-```
-Make sure that ./data-convs2s also has the source and target dictionary files.
-
-#### Topic-ConvS2S
-```
-CUDA_VISIBLE_DEVICES=1 python XSum-Topic-ConvS2S/generate.py ./data-topic-convs2s --path ./checkpoints-topic-convs2s/checkpoint_best.pt --batch-size 1 --beam 10 --replace-unk --source-lang document --target-lang summary --doctopics doc-topics --encoder-embed-dim 512 > test-output-topic-convs2s-checkpoint-best.pt 
-```
-Make sure that ./data-topic-convs2s has the test files to decode, the source and target dictionary files.
-
-### Extract final hypothesis
-```
-python scripts/extract-hypothesis-fairseq.py -o test-output-convs2s-checkpoint-best.pt -f final-test-output-convs2s-checkpoint-best.pt
-python scripts/extract-hypothesis-fairseq.py -o test-output-topic-convs2s-checkpoint-best.pt -f final-test-output-topic-convs2s-checkpoint-best.pt
 ```
 
 
