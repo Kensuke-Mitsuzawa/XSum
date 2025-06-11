@@ -17,27 +17,17 @@ Please cite this paper if you use our code or data.
 
 ### Pythons
 
-This repository requires two versions of Pythons: Python2.7 and Python3 (Python3.9 is recommended). The Python2.7 interpretor is necessary for data-processing, and the Python3 is for handling models.  
+Python3 (Python3.9 is recommended). 
+
+For constructing the XSum dataset, the Python2.7 interpretor is necessary.
 
 ### Java
 
-Java is necessary for constructing the dataset.
+Java is necessary for constructing the XSum dataset, otherwise not.
+
+Java is necessary for constructing the XSum dataset.
 Java 8 is supposed to be fine.
 The tested environment is `openjdk version "21.0.7" 2025-04-15`.
-
-
-
-# Dataset Construction: Extreme Summarization (XSum) dataset
-
-**You can always build the dataset using the instructions below. The original dataset is also available upon request.**
-
-Instructions to download and preprocess the extreme summarization dataset are [here](./XSum-Dataset).
-The dataset creation requires Python2.7.
-
-~~## Looking for a Running Demo of Our System?~~
-
-~~A running demo of our abstractive system can be found [here](http://cohort.inf.ed.ac.uk/xsum.html).~~
-
 
 
 # Pretrained models and Test Predictions (Narayan et al., EMNLP 2018)
@@ -48,7 +38,8 @@ The dataset creation requires Python2.7.
 * Our [model Predictions](xsum-model-predictions.tar.gz)
 * [Human Evaluation Data](xsum-human-evaluation-data.tar.gz)
 
----
+
+The pretrained tar.gz files contain the preprocessed text files. 
 
 ~~## Topic-Aware Convolutional Model for Extreme Summarization~~
 
@@ -83,35 +74,23 @@ python setup.py develop
 ```
 
 
-# File Preprocessing
-
-## ConvS2S
-
-The following script is with **Python2.7**.
-```
-python scripts/xsum-preprocessing-convs2s.py
-```
-
-It generates the following files in the "data-convs2s" directory: 
-
-``` 
-train.document and train.summary
-validation.document and validation.summary
-test.document and test.summary
-```
-
-
 # Generation with Pre-trained Models
 
-#### ConvS2S
+## ConvS2S
 
 ```
 CUDA_VISIBLE_DEVICES=1 python XSum-ConvS2S/generate.py ./data-convs2s --path ./checkpoints-convs2s/checkpoint-best.pt --batch-size 1 --beam 10 --replace-unk --source-lang document --target-lang summary > test-output-convs2s-checkpoint-best.pt
 ```
 
-Make sure that ./data-convs2s also has the source and target dictionary files.
+, where
 
-#### Topic-ConvS2S
+- `data-convs2s` is the directory of preprocessed files. The directory can be found in the pretrained tar.gz file.
+- `checkpoints-convs2s/checkpoint-best.pt` is the path of (pre-)trained pytorch file. 
+
+
+~~Make sure that ./data-convs2s also has the source and target dictionary files.~~
+
+## Topic-ConvS2S
 
 ```
 CUDA_VISIBLE_DEVICES=1 python XSum-Topic-ConvS2S/generate.py ./data-topic-convs2s --path ./checkpoints-topic-convs2s/checkpoint_best.pt --batch-size 1 --beam 10 --replace-unk --source-lang document --target-lang summary --doctopics doc-topics --encoder-embed-dim 512 > test-output-topic-convs2s-checkpoint-best.pt 
@@ -119,20 +98,34 @@ CUDA_VISIBLE_DEVICES=1 python XSum-Topic-ConvS2S/generate.py ./data-topic-convs2
 
 Make sure that ./data-topic-convs2s has the test files to decode, the source and target dictionary files.
 
-### Extract final hypothesis
+## Extract final hypothesis
 
 ```
 python scripts/extract-hypothesis-fairseq.py -o test-output-convs2s-checkpoint-best.pt -f final-test-output-convs2s-checkpoint-best.pt
 python scripts/extract-hypothesis-fairseq.py -o test-output-topic-convs2s-checkpoint-best.pt -f final-test-output-topic-convs2s-checkpoint-best.pt
 ```
 
-### Training a New Model
+# Training a New Model
 
-#### Data Preprocessing
+## Dataset Construction: Extreme Summarization (XSum) dataset
+
+**You can always build the dataset using the instructions below. The original dataset is also available upon request.**
+
+**No need to construct the XSum dataset just for re-producing the model. Pretrained files already contain pre-processed documents. See the next Section.**
+
+Instructions to download and preprocess the extreme summarization dataset are [here](./XSum-Dataset).
+The dataset creation requires Python2.7.
+
+~~## Looking for a Running Demo of Our System?~~
+
+~~A running demo of our abstractive system can be found [here](http://cohort.inf.ed.ac.uk/xsum.html).~~
+
+
+## Data Preprocessing before training
 
 We partition the extracted datset into training, development and test sets. The input document is truncated to 400 tokens and the length of the summary is limited to 90 tokens. Both *document* and *summary* files are lowercased.
 
-##### ConvS2S
+### ConvS2S
 
 The following script is with **Python2.7**.
 ```
@@ -156,33 +149,41 @@ python XSum-ConvS2S/preprocess.py --source-lang document --target-lang summary -
 
 This will create binarized data that will be used for model training. It also generates source and target dictionary files. In this case, both files are identical (due to "--joined-dictionary") and have 50000 tokens. 
 
-##### Topic-ConvS2S
+### Topic-ConvS2S
+
 ```
 python scripts/xsum-preprocessing-topic-convs2s.py
 ````
+
 It generates the following files in the "data-topic-convs2s" directory:
+
 ```
 train.document, train.summary, train.document-lemma and train.doc-topics
 validation.document, validation.summary, validation.document-lemma and validation.doc-topics
 test.document, test.summary, test.document-lemma and test.doc-topics
 ```
+
 Lines in document, summary, document-lemma and doc-topics files are paired as (input document, output summary, input lemmatized document, document topic vector).
+
 ```
 TEXT=./data-topic-convs2s
 python XSum-Topic-ConvS2S/preprocess.py --source-lang document --target-lang summary --trainpref $TEXT/train --validpref $TEXT/validation --testpref $TEXT/test --destdir ./data-topic-convs2s --joined-dictionary --nwordstgt 50000 --nwordssrc 50000 --output-format raw
 ```
+
 This will generate source and target dictionary files. In this case, both files are identical (due to "--joined-dictionary") and have 50000 tokens. It operates on the raw format data.
 
-#### Model Training
+## Model Training
 
 By default, the code will use all available GPUs on your machine. We have used CUDA_VISIBLE_DEVICES environment variable to select specific GPU(s).
 
-##### ConvS2S
+### ConvS2S
+
 ```
 CUDA_VISIBLE_DEVICES=1 python XSum-ConvS2S/train.py ./data-convs2s-bin --source-lang document --target-lang summary --max-sentences 32 --arch fconv --criterion label_smoothed_cross_entropy --max-epoch 200 --clip-norm 0.1 --lr 0.10 --dropout 0.2 --save-dir ./checkpoints-convs2s --no-progress-bar --log-interval 10
 ```
 
-##### Topic-ConvS2S
+### Topic-ConvS2S
+
 ```
 CUDA_VISIBLE_DEVICES=1 python XSum-Topic-ConvS2S/train.py ./data-topic-convs2s --source-lang document --target-lang summary --doctopics doc-topics --max-sentences 32 --arch fconv --criterion label_smoothed_cross_entropy --max-epoch 200 --clip-norm 0.1 --lr 0.10 --dropout 0.2 --save-dir ./checkpoints-topic-convs2s --no-progress-bar --log-interval 10
 ```
