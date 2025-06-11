@@ -57,8 +57,9 @@ def write_to_bin(data_type, out_file_rb, out_file_fs):
 
   rb_foutput = open(out_file_rb, "w")
   fs_foutput = open(out_file_fs, "w")
-      
-  for idx,s in enumerate(bbcids):
+  
+  # `s` is the article-id, e.g. `40453444``
+  for idx, s in enumerate(bbcids):
     
     if idx % 1000 == 0:
       print "Writing story %i of %i; %.2f percent done" % (idx, num_stories, float(idx)*100.0/float(num_stories))
@@ -67,7 +68,15 @@ def write_to_bin(data_type, out_file_rb, out_file_fs):
     restbodyfile = bbc_tokenized_stories_dir + "/document/" + s + ".document"
     firstsentencefile = bbc_tokenized_stories_dir + "/summary/" + s + ".summary"
     
-            
+    if not os.path.exists(restbodyfile):
+      print("File not found skip %s" % restbodyfile)
+      continue
+    # end if
+    if not os.path.exists(firstsentencefile):
+      print("File not found skip %s" % firstsentencefile)
+      continue      
+    # end if
+
     # Get the strings to write to .bin file
     abstract = get_data_from_file(firstsentencefile)
     article = get_data_from_file(restbodyfile)
