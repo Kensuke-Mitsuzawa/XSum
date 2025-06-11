@@ -23,7 +23,7 @@ def indent(elem, level=0):
 
 if __name__ == "__main__":
 
-  stanford_directory = "./StanfordOutput"
+  stanford_directory = "./stanford-corenlp-full-2015-12-09/StanfordOutput"
 
   # Load split file
   split_dict = json.loads(open("XSum-TRAINING-DEV-TEST-SPLIT-90-5-5.json").read())
@@ -52,6 +52,11 @@ if __name__ == "__main__":
       
       
       stanfordfile = stanford_directory + "/" + orgfileid + ".data.xml"
+
+      if not os.path.exists(stanfordfile):
+        print("Skipped. No file found: %s" % stanfordfile)
+        continue
+      # end if
     
       doc_sentences = []
       doc_sentlemmas = []
@@ -76,30 +81,48 @@ if __name__ == "__main__":
       restbodydata = []
       restbodylemmadata = []
       summarydata = []
+
+      assert len(doc_sentences) == len(doc_sentlemmas)
+      # print("Processed documents: %s" % len(doc_sentences))
       
       allcovered = 0
+      _items_covered = []
       for doc_sent, doc_sentlemma in zip(doc_sentences, doc_sentlemmas):
         if "-LSB- XSUM -RSB- URL -LSB- XSUM -RSB-" in doc_sent:
           modeFlag = "URL"
           allcovered += 1
+          _items_covered.append(modeFlag)
         elif "-LSB- XSUM -RSB- FIRST-SENTENCE -LSB- XSUM -RSB-" in doc_sent:
           modeFlag = "INTRODUCTION"
           allcovered += 1
+          _items_covered.append(modeFlag)
+        elif "-LSB- XSUM -RSB- INTRODUCTION -LSB- XSUM -RSB-" in doc_sent:
+          # added 2025-06-11. The section name "FIRST-SENTENCE" does not exist anymore.
+          modeFlag = "INTRODUCTION"
+          allcovered += 1
+          _items_covered.append(modeFlag)
         elif "-LSB- XSUM -RSB- RESTBODY -LSB- XSUM -RSB-" in doc_sent:
           modeFlag = "RestBody"
           allcovered += 1
+          _items_covered.append(modeFlag)
         else:
           if modeFlag == "RestBody":
             restbodydata.append(doc_sent)
             restbodylemmadata.append(doc_sentlemma)
+          # end if
           if modeFlag == "INTRODUCTION":
             summarydata.append(doc_sent)
+          # end if
+        # end if
 
-      # print(allcovered)
       if allcovered != 3:
         print("Some information missing", stanfordfile)
+        print("Covered Count Flag %s" % allcovered)
+        print("Covered Items %s" % _items_covered)        
         print("\n".join(doc_sentences))
+        # continue
         exit(0)
+      # end if
 
       # rest body data
       foutput = open(output_directory+"/document/"+orgfileid+".document", "w")

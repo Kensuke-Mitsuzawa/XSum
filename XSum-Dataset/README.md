@@ -16,6 +16,19 @@ conda install anaconda::libxml2
 
 ### Java 
 
+The known good java version is below,
+
+```
+ % java -version
+openjdk version "21.0.7" 2025-04-15
+OpenJDK Runtime Environment (build 21.0.7+6-Ubuntu-0ubuntu124.04)
+OpenJDK 64-Bit Server VM (build 21.0.7+6-Ubuntu-0ubuntu124.04, mixed mode, sharing)
+```
+.
+
+
+Yet, Java 8 is supposed to be fine.
+
 
 ### Stanford NLP ToolKit
 
@@ -60,9 +73,11 @@ Please cite this paper if you use our code or data.
 The download script is based on the [methodology](https://github.com/deepmind/rc-data/) proposed in [Hermann et al. (2015)](http://arxiv.org/abs/1506.03340) from Google DeepMind. 
 
 ### Prerequisites
+
 Python 2.7, wget, libxml2, libxslt, python-dev and virtualenv. libxml2 must be version 2.9.1. You can install libxslt from here: http://xmlsoft.org/libxslt/downloads.html
 
 ### Activating Virtual Environment
+
 ```
 sudo pip install virtualenv
 sudo apt-get install python-dev
@@ -74,9 +89,11 @@ sudo apt-get install libxml2-dev libxslt-dev
 ```
 
 ### Download URLs
+
 ```
 python scripts/download-bbc-articles.py [--timestamp_exactness 14]
 ```
+
 This will download BBC news articles (html files) from the Wayback Machine. The script could fail to download some URLs (Wayback Machine servers temporarily down). Please **run this script multiple times** to ensure that you have downloaded the whole dataset. Each time you run this script, it stores the missing URLs that should be downloaded in the next turn.
 
 [Sep 19, 2018]: Each URL includes a timestamp (14 letters; year, month, date, hour, minute and second, e.g., 20130206080312) showing when it was stored. By default, it is set to 14 letters. You can lower this to improve your chances to download a BBC article. For example, with timestamp_exactness=4 the time stamp will be chopped to first 4 letters (i.e., 2013) and it will try to download a version of the article stored in 2013 (any month, date, hour, minute or second). Every time you rerun the download script, lower the timestamp_exactness (>= 1) to improve the chances of getting missed URLs from the previous step. However, lower the timestamp_exactness value, more time it will take to retrieve the article.
@@ -84,13 +101,26 @@ This will download BBC news articles (html files) from the Wayback Machine. The 
 This will create a directory called "xsum-raw-downloads" with downloaded html files.
 
 ### Extract Text from HTML files
+
 ```
 python scripts/parse-bbc-html-data.py
 ```
+
 This will extract text (url, body, summary) from html files. It will create a directory called "xsum-extracts-from-downloads" with extracted data (*bbcid.data*) files.
 
-### Deactivate Virtual Environment
-```deactivate```
+### Listing up extracted files for Stanford CoreNLP toolkit
+
+The directory for the standord corenlp toolkit, `stanford-corenlp-full-2015-12-09`, is pre-required. 
+
+```
+python scripts/create-stanford-inputlist.py
+```
+
+A text files is created at `stanford-corenlp-full-2015-12-09/stanford-inputlist.txt`. 
+
+
+~~### Deactivate Virtual Environment~~
+~~```deactivate```~~
 
 ## Postprocessing: Sentence Segmentation, Tokenization, Lemmatization and Final preparation
 
@@ -99,6 +129,7 @@ This will extract text (url, body, summary) from html files. It will create a di
 We use the Stanford CoreNLP toolkit to preprocess (segment, tokenize and lemmatize) the extracted files in "xsum-extracts-from-downloads." 
 
 Create a file *stanford-inputlist.txt* which lists extracted data files in "xsum-extracts-from-downloads." For example, it will have entries like:
+
 ```
 xsum-extracts-from-downloads/2333890.data
 xsum-extracts-from-downloads/3245891.data
@@ -106,17 +137,21 @@ and so on.
 ```
 
 Now, run the Stanford CoreNLP toolkit:
+
 ```
-cd tools/stanford-corenlp-full-2015-12-09
+cd stanford-corenlp-full-2015-12-09
 ./corenlp.sh -annotators tokenize,ssplit,pos,lemma -ssplit.newlineIsSentenceBreak always -filelist stanford-inputlist.txt -outputFormat xml -outputDirectory StanfordOutput
 ```
 
 The directory "StanfordOutput" will have CoreNLP output files in the XML format. 
 
 ### Extracting data from CoreNLP XML files
+
+
 ```
-python3 scripts/process-corenlp-xml-data.py
+python scripts/process-corenlp-xml-data.py
 ```
+
 It processes files in "StanfordOutput" and creates a directory "xsum-preprocessed" with three subfolders "document", "document-lemma" and "summary".
 
 * "document-lemma" files are used to train LDA models. 
