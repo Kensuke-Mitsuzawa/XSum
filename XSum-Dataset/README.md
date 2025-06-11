@@ -91,7 +91,8 @@ sudo apt-get install libxml2-dev libxslt-dev
 ### Download URLs
 
 ```
-python scripts/download-bbc-articles.py [--timestamp_exactness 14]
+python scripts/download-bbc-articles.py --timestamp_exactness 14
+python scripts/download-bbc-articles.py --timestamp_exactness 4
 ```
 
 This will download BBC news articles (html files) from the Wayback Machine. The script could fail to download some URLs (Wayback Machine servers temporarily down). Please **run this script multiple times** to ensure that you have downloaded the whole dataset. Each time you run this script, it stores the missing URLs that should be downloaded in the next turn.
