@@ -33,6 +33,14 @@ import cchardet as chardet
 from lxml import html
 import requests
 import socket
+import logging
+
+
+headers = {
+    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
+    # You can try other user agents if this one doesn't work, e.g., for Firefox or Safari.
+    # 'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:109.0) Gecko/20100101 Firefox/117.0'
+}
 
 
 class ProgressBar(object):
@@ -74,9 +82,9 @@ def DownloadMapper(t):
 
   """
 
-  url, downloads_dir, timestamp_exactness = t
+  url, downloads_dir, timestamp_exactness, max_attempts, timeout = t
   # print url
-  return url, DownloadUrl(url, downloads_dir, timestamp_exactness)
+  return url, DownloadUrl(url, downloads_dir, timestamp_exactness, max_attempts, timeout)
 
 def DownloadUrl(url, downloads_dir, timestamp_exactness, max_attempts=5, timeout=5): # Actually it was 5
   """Downloads a URL.
@@ -112,27 +120,36 @@ def DownloadUrl(url, downloads_dir, timestamp_exactness, max_attempts=5, timeout
   attempts = 0
   while attempts < max_attempts:
     try:
-      req = requests.get(url, allow_redirects=True, timeout=timeout)
+      req = requests.get(url, allow_redirects=True, timeout=timeout, headers=headers, verify=False)
 
       if req.status_code == requests.codes.ok:
         content = req.text.encode(req.encoding)
         with open(downloads_dir+"/"+htmlfileid, 'w') as f:
           f.write(content)
+        # end with
+        logger.debug("Saved: %s" % url)
         return content
       elif (req.status_code in [301, 302, 404, 503]
             and attempts == max_attempts - 1):
+        logger.info("Reached the max attempt. Giving up. %s" % url)
         return None
     except requests.exceptions.ConnectionError:
+      logger.error("ConnectionError Error %s" % url)
       pass
     except requests.exceptions.ContentDecodingError:
+      logger.error("ContentDecodingError Error %s" % url)
       return None
     except requests.exceptions.ChunkedEncodingError:
+      logger.error("ChunkedEncodingError Error %s" % url)
       return None
     except requests.exceptions.Timeout:
+      logger.error("Timeout Error %s" % url)
       pass
     except socket.timeout:
+      logger.error("Timeout Error %s" % url)      
       pass
     except requests.exceptions.TooManyRedirects:
+      logger.error("TooManyRedirects %s" % url)
       pass
 
     # Exponential back-off.
@@ -167,7 +184,7 @@ def WriteUrls(filename, urls):
     f.writelines(url + '\n' for url in urls)
 
 
-def DownloadMode(urls_file, missing_urls_file, downloads_dir, request_parallelism, timestamp_exactness):
+def DownloadMode(urls_file, missing_urls_file, downloads_dir, request_parallelism, timestamp_exactness, max_attempts=5, timeout=5):
   """Downloads the URLs for the specified corpus.
 
   Args:
@@ -192,7 +209,12 @@ def DownloadMode(urls_file, missing_urls_file, downloads_dir, request_parallelis
 
     p = ThreadPool(request_parallelism)
     
-    results = p.imap_unordered(DownloadMapper, izip(urls_left_todownload, repeat(downloads_dir), repeat(timestamp_exactness)))
+    results = p.imap_unordered(DownloadMapper, 
+                               izip(urls_left_todownload, 
+                                    repeat(downloads_dir), 
+                                    repeat(timestamp_exactness), 
+                                    repeat(max_attempts), 
+                                    repeat(timeout)))
     
     progress_bar = ProgressBar(len(urls_left_todownload))
 
@@ -221,6 +243,7 @@ def DownloadMode(urls_file, missing_urls_file, downloads_dir, request_parallelis
     urls_toignore = collected_urls[:] +  missing_urls[:]
     urls_left_todownload = list(set(urls_left_todownload) - set(urls_toignore))
     print 'urls left to download: ' +  str(len(urls_left_todownload))
+  # end while
 
   # Write all the final missing urls
   missing_urls = []
@@ -238,6 +261,8 @@ def main():
   parser.add_argument('--request_parallelism', type=int, default=200)
   parser.add_argument('--context_token_limit', type=int, default=2000)
   parser.add_argument('--timestamp_exactness', type=int, default=14)
+  parser.add_argument('--max_attempt', type=int, default=5)
+  parser.add_argument('--max_timeout', type=int, default=5)  
   args = parser.parse_args()
     
   urls_file_to_download = "XSum-WebArxiveUrls.txt"
@@ -247,10 +272,42 @@ def main():
   os.system("mkdir -p "+downloads_dir)
   
   
-  DownloadMode(urls_file_to_download, missing_urls_file, downloads_dir, args.request_parallelism, args.timestamp_exactness)
+  DownloadMode(urls_file_to_download, missing_urls_file, downloads_dir, args.request_parallelism, args.timestamp_exactness, args.max_attempt, args.max_timeout)
 
+
+def setup_logger(log_file_path, level=logging.DEBUG):
+    """
+    Initializes a file logger and also displays messages to stdout.
+    """
+    # Create a logger
+    logger = logging.getLogger(__file__)
+    logger.setLevel(level)
+
+    # Create a file handler
+    file_handler = logging.FileHandler(log_file_path)
+    file_handler.setLevel(level)
+
+    # Create a console handler (for stdout)
+    console_handler = logging.StreamHandler(sys.stdout)
+    console_handler.setLevel(level)
+
+    # Create a formatter
+    formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+
+    # Add formatter to handlers
+    file_handler.setFormatter(formatter)
+    console_handler.setFormatter(formatter)
+
+    # Add handlers to the logger
+    logger.addHandler(file_handler)
+    logger.addHandler(console_handler)
+
+    return logger
 
 
 if __name__ == '__main__':
+  import logging
+  logger = setup_logger('./download-bbc-articles.log')
+
   main()
 
